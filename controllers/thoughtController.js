@@ -29,9 +29,7 @@ module.exports = {
         .then(async (thought) =>
         !thought 
         ? res.status(404).json({ message: 'No thought with that ID'}) 
-        : res.json({
-            thought,
-        })
+        : res.json({ thoughtText: req.params.thoughtText })
         )
         .catch((err) => {
             console.log(err);
@@ -48,13 +46,19 @@ module.exports = {
     updateThought(req, res) {
         Thought.findOneAndUpdate(
             { _id: req.params.thoughtId },
-            { thoughtText: req.params.thoughtText },
+            // { thoughtText: req.params.thoughtText },
+            { $set: req.body },
             { new: true })
         .then(updatedThought => res.status(200).json(updatedThought))
         .catch(err => res.status(500).json(err))
-    }
+    },
 
 // delete thought by _id
+    deleteThought(req, res) {
+        Thought.findOneAndDelete({ _id: req.params.thoughtId })
+        .then((thought) => res.json(thought))
+        .catch((err) => res.status(500).json(err));
+    }
 
 // routes for /api/thoughts/:thoughtId/reactions
 
