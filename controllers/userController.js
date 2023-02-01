@@ -67,19 +67,13 @@ module.exports = {
 // routes for /api/users/:userId/friends/:friendId
 // post to add new friend to user's friend list
     addFriend(req, res) {
-        User.create(req.body)
-        .then((user) => {
-            return User.findOneAndUpdate(
-                { username: req.params.userId },
-                { $addToSet: { friends: user.friends }},
+            User.findOneAndUpdate(
+                { _id: req.params.userId },
+                { $addToSet: { friends: req.params.friendId }},
                 { new: true }
             )
-        })
-        .then((user) => {
-            !user
-            ? res.status(404).json({ message: 'Friend created, but no user with that ID' })
-            : res.json('Created friend')
-        })
+        .then((user) => res.json(user))
+        
         .catch(err => res.status(500).json(err))   
     },
 // delete to remove friend from friend list
