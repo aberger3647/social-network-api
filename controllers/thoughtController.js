@@ -26,10 +26,10 @@ module.exports = {
     getSingleThought(req, res) {
         Thought.findOne({ _id: req.params.thoughtId })
         .select('-__v')
-        .then(async (thought) =>
+        .then((thought) =>
         !thought 
         ? res.status(404).json({ message: 'No thought with that ID'}) 
-        : res.json({ thoughtText: req.params.thoughtText })
+        : res.json(thought)
         )
         .catch((err) => {
             console.log(err);
@@ -39,15 +39,23 @@ module.exports = {
 // create new thought - push thought's _id to user's thoughts array
     createThought(req,res) {
         Thought.create(req.body)
-        .then((thought) => res.json(thought))
+        .then((thought) => {  
+            return User.findOneAndUpdate( 
+            { username: thought.username },
+            { $addToSet: { thoughts: thought._id } },
+            { new: true })
+        })
+        .then((user) =>
+        !user
+        ? res.status(404).json({ message: 'Thought created, but found no user with that ID' })
+        : res.json('Created thought'))
         .catch((err) => res.status(500).json(err));
     },
 // update thought by _id
     updateThought(req, res) {
         Thought.findOneAndUpdate(
             { _id: req.params.thoughtId },
-            // { thoughtText: req.params.thoughtText },
-            { $set: req.body },
+            { thoughtText: req.body.thoughtText },
             { new: true })
         .then(updatedThought => res.status(200).json(updatedThought))
         .catch(err => res.status(500).json(err))
@@ -58,12 +66,34 @@ module.exports = {
         Thought.findOneAndDelete({ _id: req.params.thoughtId })
         .then((thought) => res.json(thought))
         .catch((err) => res.status(500).json(err));
-    }
+    },
 
 // routes for /api/thoughts/:thoughtId/reactions
 
 // post to create reaction stored in a single thought's reactions array
-
+// reaction should be in req.body
+// update thought with what is in req.body
+    createReaction(req, res) {
+        Thought.findOneAndUpdate(req.body)
+        .then((thought) => {
+            return Reaction.create(
+                { username: thought.username },
+                { $addToSet: { reactionBody: req.body } },
+                { new: true }
+            )
+        })
+        .catch((err) => res.status(500).json(err));
+    },
 // delete by reactionId
-
+// thoughtId/reactions/reactionId
+// or have reactionId in req.body
+    deleteReaction(req, res) {
+        Thought.findOneAndUpdate( { _id: req.params.thoughtId })
+        .then((thought) => {
+            return Reaction.findOneAndDelete(
+                { _id: reactionId }
+            )
+        })
+        .catch(err => res.status(500).json(err))   
+    }
 };

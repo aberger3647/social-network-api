@@ -1,5 +1,5 @@
 const { ObjectId } = require('mongoose').Types;
-const { User } = require('../models');
+const { User, Thought } = require('../models');
 
 const userCount = async() =>
     User.aggregate()
@@ -56,14 +56,36 @@ module.exports = {
 // delete to remove by _id
     deleteUser(req, res) {
         User.findOneAndDelete({ _id: req.params.userId })
-        .then((user) => res.json(user))
+        .then((user) => {
+            console.log(user)
+            return Thought.deleteMany({ _id: { $in: user.thoughts } })
+        })
+        .then(() => {
+            console.log("##########")
+            res.status(200).json({ message: 'User deleted and thoughts' })
+        })
         .catch((err) => res.status(500).json(err));
-    }
-// bonus: remove user's associated thoughts when deleted
-
+    },
 // routes for /api/users/:userId/friends/:friendId
-
 // post to add new friend to user's friend list
-
+    addFriend(req, res) {
+        User.findOneAndUpdate(req.params.userId)
+        .then((user) => {
+            return User.create(
+                { username: req.body.username },
+                { email: req.body.email }
+                )
+        })
+        .catch(err => res.status(500).json(err))   
+    },
 // delete to remove friend from friend list
+    deleteFriend(req, res) {
+        User.findOneAndUpdate({ _id: req.params.userId })
+        .then((user) => {
+            !user
+            ? res.status(404).json({ message: 'No user found with that ID' })
+            : res.json('Deleted from friend list')
+        })
+        .catch(err => res.status(500).json(err))   
+    }
 };
