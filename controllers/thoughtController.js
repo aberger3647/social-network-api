@@ -1,5 +1,4 @@
-const { ObjectId } = require('mongoose').Types;
-const { Thought, User, Reaction } = require('../models');
+const { Thought, User } = require('../models');
 
 const thoughtCount = async() => 
     Thought.aggregate()
@@ -70,9 +69,7 @@ module.exports = {
 
 // routes for /api/thoughts/:thoughtId/reactions
 
-// post to create reaction stored in a single thought's reactions array
-// reaction should be in req.body
-// update thought with what is in req.body
+// post to create reaction
     createReaction(req, res) {
         Thought.findOneAndUpdate(
             { _id: req.params.thoughtId },
@@ -87,8 +84,6 @@ module.exports = {
         .catch((err) => res.status(500).json(err));
     },
 // delete by reactionId
-// thoughtId/reactions/reactionId
-// or have reactionId in req.body
     deleteReaction(req, res) {
         Thought.findOneAndUpdate(
             { _id: req.params.thoughtId },

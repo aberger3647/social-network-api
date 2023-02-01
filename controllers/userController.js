@@ -67,12 +67,18 @@ module.exports = {
 // routes for /api/users/:userId/friends/:friendId
 // post to add new friend to user's friend list
     addFriend(req, res) {
-        User.findOneAndUpdate(req.params.userId)
+        User.create(req.body)
         .then((user) => {
-            return User.create(
-                { username: req.body.username },
-                { email: req.body.email }
-                )
+            return User.findOneAndUpdate(
+                { username: req.params.userId },
+                { $addToSet: { friends: user.friends }},
+                { new: true }
+            )
+        })
+        .then((user) => {
+            !user
+            ? res.status(404).json({ message: 'Friend created, but no user with that ID' })
+            : res.json('Created friend')
         })
         .catch(err => res.status(500).json(err))   
     },
