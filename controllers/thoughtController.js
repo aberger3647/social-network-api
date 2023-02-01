@@ -74,13 +74,15 @@ module.exports = {
 // reaction should be in req.body
 // update thought with what is in req.body
     createReaction(req, res) {
-        Thought.findOneAndUpdate(req.body)
+        Thought.findOneAndUpdate(
+            { _id: req.params.thoughtId },
+            { $addToSet: { reactions: req.body } },
+            { new: true }
+        )
         .then((thought) => {
-            return Reaction.create(
-                { username: thought.username },
-                { $addToSet: { reactionBody: req.body } },
-                { new: true }
-            )
+        !thought
+            ? res.status(404).json({ message: 'No thought found with that ID' })
+            : res.json(thought)
         })
         .catch((err) => res.status(500).json(err));
     },

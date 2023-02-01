@@ -1,4 +1,4 @@
-const { ObjectId } = require('mongoose').Types;
+// const { ObjectId } = require('mongoose').Types;
 const { User, Thought } = require('../models');
 
 const userCount = async() =>
@@ -53,15 +53,13 @@ module.exports = {
         .then(updatedUser => res.status(200).json(updatedUser))
         .catch(err => res.status(500).json(err))
     },
-// delete to remove by _id
+// delete to remove user by _id and associated thoughts
     deleteUser(req, res) {
         User.findOneAndDelete({ _id: req.params.userId })
         .then((user) => {
-            console.log(user)
             return Thought.deleteMany({ _id: { $in: user.thoughts } })
         })
         .then(() => {
-            console.log("##########")
             res.status(200).json({ message: 'User deleted and thoughts' })
         })
         .catch((err) => res.status(500).json(err));
